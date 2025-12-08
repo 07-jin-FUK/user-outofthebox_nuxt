@@ -30,11 +30,13 @@ interface Option {
 const props = withDefaults(defineProps<{
   modelValue?: string
   options?: Option[]
-  featuredFirst?: boolean 
+  featuredFirst?: boolean
+  columns?: number  
 }>(), {
   modelValue: '',
   options: () => [],
-  featuredFirst: false 
+  featuredFirst: false,
+  columns: 2
 })
 
 const emit = defineEmits(['update:modelValue', 'submit'])
@@ -45,14 +47,16 @@ const handleSelect = (value: string) => {
     emit('submit')
   })
 }
+
+const gridColumns = computed(() => `repeat(${props.columns}, 1fr)`)
 </script>
 
 <style lang="scss" scoped>
 .select-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);  // ← 2列に固定
+  grid-template-columns: v-bind(gridColumns); 
   gap: $spacing-md;
-  max-width: 700px; 
+  max-width: 600px; 
   margin: 0 auto;
   
     &--featured-first {

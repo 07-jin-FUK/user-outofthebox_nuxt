@@ -1,28 +1,31 @@
 <template>
   <div class="onboarding">
     <StepIndicator :current-step="currentStep" :steps="steps" />
-    
+
     <div class="onboarding__content">
-      <QuestionCard
-        :question="currentQuestion"
-        :current-index="currentQuestionIndex"
-        :total="questions.length"
-      >
+      <QuestionCard :question="currentQuestion" :current-index="currentQuestionIndex" :total="questions.length">
         <ClientOnly>
-<component
-  :is="currentQuestion.component"
-  v-model="currentAnswer"
-  :options="currentQuestionOptions"
-  :dropdowns="currentQuestion.dropdowns"
-  :placeholder="currentQuestion.placeholder"
-  :featured-first="currentQuestion.featuredFirst"
-  :school-name="graduationSchoolName"
-  :faculty-name="graduationFacultyName"
-  :base-age="graduationBaseAge"
-  :birth-year="birthYear"
-  :notes="currentQuestion.notes"
-  @submit="handleNext"
-/>
+          <component
+            :is="currentQuestion.component"
+            v-model="currentAnswer"
+            :options="currentQuestionOptions"
+            :columns="currentQuestion.columns"
+            :dropdowns="currentQuestion.dropdowns"
+            :placeholder="currentQuestion.placeholder"
+            :featured-first="currentQuestion.featuredFirst"
+            :school-name="graduationSchoolName"
+            :faculty-name="graduationFacultyName"
+            :base-age="graduationBaseAge"
+            :birth-year="birthYear"
+            :notes="currentQuestion.notes"
+            :selected-label="currentQuestion.selectedLabel"
+            :category-data="currentQuestion.categoryData"
+            :selected-jobs="currentQuestion.selectedJobs"
+            :company-name="currentQuestion.companyName"
+            :employment-period="currentQuestion.employmentPeriod"
+            @submit="handleNext"
+            @update:selected-label="updateSelectedLabel"
+          />
           <template #fallback>
             <div class="loading-placeholder">読み込み中...</div>
           </template>
@@ -33,62 +36,28 @@
     <div class="onboarding__nav">
       <!-- 中央: 戻る/次へボタン -->
       <div class="onboarding__nav-center">
-        <button 
-          v-if="currentQuestionIndex > 0"
-          class="btn btn--secondary"
-          @click="handleBack"
-        >
-          戻る
-        </button>
+        <button v-if="currentQuestionIndex > 0" class="btn btn--secondary" @click="handleBack">戻る</button>
         <ClientOnly>
-          <button 
-            class="btn btn--primary"
-            :disabled="!canProceed"
-            @click="handleNext"
-          >
-            {{ isLastQuestion ? '完了' : '次の質問へ進む' }}
+          <button class="btn btn--primary" :disabled="!canProceed" @click="handleNext">
+            {{ isLastQuestion ? "完了" : "次の質問へ進む" }}
           </button>
           <template #fallback>
-            <button class="btn btn--primary" disabled>
-              次の質問へ進む
-            </button>
+            <button class="btn btn--primary" disabled>次の質問へ進む</button>
           </template>
         </ClientOnly>
       </div>
-      
+
       <!-- 右下: リセットボタン -->
-      <button 
-        class="btn btn--text btn--reset"
-        @click="handleReset"
-      >
-        入力内容をリセット
-      </button>
+      <button class="btn btn--text btn--reset" @click="handleReset">入力内容をリセット</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import StepIndicator from '~/components/onboarding/StepIndicator.vue'
-import QuestionCard from '~/components/onboarding/QuestionCard.vue'
+import StepIndicator from "~/components/onboarding/StepIndicator.vue";
+import QuestionCard from "~/components/onboarding/QuestionCard.vue";
 
-const { 
-  currentStep,
-  steps,
-  questions,
-  currentQuestionIndex,
-  currentQuestion,
-  currentQuestionOptions,
-  currentAnswer,
-  canProceed,
-  isLastQuestion,
-  handleNext,
-  handleBack,
-  handleReset,
-  graduationSchoolName,
-  graduationFacultyName,
-  graduationBaseAge,
-  birthYear
-} = useOnboarding()
+const { currentStep, steps, questions, currentQuestionIndex, currentQuestion, currentQuestionOptions, currentAnswer, canProceed, isLastQuestion, handleNext, handleBack, handleReset, updateSelectedLabel, graduationSchoolName, graduationFacultyName, graduationBaseAge, birthYear } = useOnboarding();
 </script>
 
 <style lang="scss" scoped>
@@ -96,14 +65,16 @@ const {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  padding-top: 60px;  // ← インディケーターの高さ分の余白を追加
+  padding-top: 60px; // ← インディケーターの高さ分の余白を追加
   padding-bottom: 80px;
 
   &__content {
     flex: 1;
-    @include flex-center;
+    display: flex; 
+    flex-direction: column;
+    align-items: center; 
     padding: $spacing-xl;
-    overflow-y: auto;  // ← コンテンツ部分だけスクロール
+    overflow-y: auto;
   }
 
   &__nav {
@@ -131,7 +102,7 @@ const {
   right: $spacing-lg;
   color: $text-muted;
   font-size: $font-size-sm;
-  
+
   &:hover {
     color: #dc2626;
   }
@@ -148,7 +119,7 @@ const {
   right: $spacing-lg;
   color: $text-muted;
   font-size: $font-size-sm;
-  
+
   &:hover {
     color: #dc2626;
   }

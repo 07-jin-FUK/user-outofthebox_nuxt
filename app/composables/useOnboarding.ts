@@ -7,15 +7,37 @@ import SelectSchoolWithSearch from '~/components/onboarding/inputs/SelectSchoolW
 import GraduationYearSelect from '~/components/onboarding/inputs/GraduationYearSelect.vue'
 import TextInputWithNotes from '~/components/onboarding/inputs/TextInputWithNotes.vue'
 import EmploymentPeriodSelect from '~/components/onboarding/inputs/EmploymentPeriodSelect.vue'
-
-
-
+import AnnualIncomeInput from '~/components/onboarding/inputs/AnnualIncomeInput.vue'
+import CertificationInput from '~/components/onboarding/inputs/CertificationInput.vue'
+import IndustrySelect from '~/components/onboarding/inputs/IndustrySelect.vue'
+import JobCategorySelect from '~/components/onboarding/inputs/JobCategorySelect.vue'
+import IndustryMediumSelect from '~/components/onboarding/inputs/IndustryMediumSelect.vue'
+import PastJobCategorySelect from '~/components/onboarding/inputs/PastJobCategorySelect.vue'
+import JobExperienceYearsInput from '~/components/onboarding/inputs/JobExperienceYearsInput.vue'
 
 const STORAGE_KEY = 'onboarding_answers'
 
 interface Step {
   id: string
   label: string
+}
+
+interface SmallCategory {
+  value: string
+  label: string
+}
+
+interface MediumCategory {
+  value: string
+  label: string
+  children: SmallCategory[]
+}
+
+interface LargeCategory {
+  value: string
+  label: string
+  subtitle: string
+  children: MediumCategory[]
 }
 
 interface Question {
@@ -28,7 +50,9 @@ interface Question {
   dropdowns?: any[]
   placeholder?: string
   defaultValue: any
-  isRequired?: boolean  // ← 追加（undefined = true扱い）
+  isRequired?: boolean
+  selectedLabel?: string
+  categoryData?: LargeCategory[]  // ← この行を追加
 }
 
 // 年の選択肢を生成
@@ -351,6 +375,163 @@ const jobCategoryOptions = [
   { value: 'other', label: 'その他' }
 ]
 
+// 過去の職種カテゴリデータ(3層構造)
+const pastJobCategoryData: LargeCategory[] = [
+  {
+    value: 'sales',
+    label: '営業',
+    subtitle: '金融／不動産／メーカー／IT／人材／商社／建設／医療／その他',
+    children: [
+      {
+        value: 'financial_sales',
+        label: '金融営業',
+        children: [
+          { value: 'corporate_finance', label: '法人営業' },
+          { value: 'individual_finance', label: '個人営業' },
+          { value: 'risk_management', label: 'リスク管理' }
+        ]
+      },
+      {
+        value: 'real_estate_sales',
+        label: '不動産営業(販売／仲介／土地活用／リフォーム)',
+        children: [
+          { value: 'property_sales', label: '物件販売' },
+          { value: 'brokerage', label: '仲介' },
+          { value: 'land_use', label: '土地活用' }
+        ]
+      }
+    ]
+  },
+  {
+    value: 'service',
+    label: 'サービス',
+    subtitle: '教育／保育／美容／コールセンター／旅行／冠婚葬祭／通訳／交通／運輸／警備／清掃／その他',
+    children: [
+      {
+        value: 'education',
+        label: '教育／保育',
+        children: [
+          { value: 'teacher', label: '教師' },
+          { value: 'childcare', label: '保育士' },
+          { value: 'tutor', label: '塾講師' }
+        ]
+      },
+      {
+        value: 'beauty',
+        label: '美容',
+        children: [
+          { value: 'hairdresser', label: '美容師' },
+          { value: 'esthetician', label: 'エステティシャン' },
+          { value: 'nail_artist', label: 'ネイリスト' }
+        ]
+      }
+    ]
+  }
+]
+
+// 業種大分類
+const industryLargeOptions = [
+  { value: 'manufacturer_goods', label: 'メーカー（部品製造／加工）' },
+  { value: 'manufacturer_electric', label: 'メーカー（電気／機械）' },
+  { value: 'manufacturer_energy', label: 'メーカー（鉱業／資源／エネルギー／化学／素材）' },
+  { value: 'manufacturer_food', label: 'メーカー（食料品／飲料／たばこ／飼料）' },
+  { value: 'manufacturer_cosmetics', label: 'メーカー（化粧品／トイレタリー／日用品／消費財）' },
+  { value: 'manufacturer_apparel', label: 'メーカー（アパレル／ファッション／寝具／インテリア）' },
+  { value: 'it_internet', label: 'IT／インターネット／ゲーム／通信' },
+  { value: 'medical', label: 'メディカル（メーカー／商社／医療機関／医療サービス）' },
+  { value: 'welfare', label: '福祉介護／保健衛生／療術' },
+  { value: 'trading', label: '総合商社' },
+  { value: 'trading_machinery', label: '専門商社（機械部品／金属部品）' },
+  { value: 'trading_electric', label: '専門商社（電気／機械）' },
+  { value: 'trading_energy', label: '専門商社（鉱業／資源／エネルギー／化学／素材）' },
+  { value: 'trading_food', label: '専門商社（食料品／飲料／たばこ／飼料）' },
+  { value: 'trading_cosmetics', label: '専門商社（化粧品／トイレタリー／日用品／消費財）' },
+  { value: 'trading_apparel', label: '専門商社（アパレル／ファッション／寝具／インテリア）' },
+  { value: 'construction', label: '建設／プラント／不動産' },
+  { value: 'finance', label: '金融' },
+  { value: 'technical', label: '技術サービス' },
+  { value: 'consulting', label: 'コンサルティング／リサーチ' }
+]
+
+// 業種中分類のマッピング(拡充版)
+const industryMediumOptions: Record<string, any[]> = {
+  'it_internet': [
+    { value: 'software', label: 'ソフトウェア／パッケージベンダ' },
+    { value: 'web_service', label: 'Webサービス／Webメディア' },
+    { value: 'game', label: 'ゲーム' },
+    { value: 'system_integration', label: 'システムインテグレーター' },
+    { value: 'internet_service', label: 'インターネットサービス' }
+  ],
+  'manufacturer_electric': [
+    { value: 'electronics', label: '電子機器' },
+    { value: 'semiconductor', label: '半導体' },
+    { value: 'precision_machinery', label: '精密機械' }
+  ],
+  'trading': [
+    { value: 'general_trading', label: '総合商社' }
+  ],
+  'construction': [
+    { value: 'general_construction', label: '総合建設' },
+    { value: 'real_estate', label: '不動産' }
+  ],
+  'finance': [
+    { value: 'banking', label: '銀行' },
+    { value: 'securities', label: '証券' },
+    { value: 'insurance', label: '保険' }
+  ]
+}
+
+const jobDetailOptions: Record<string, any[]> = {
+  // ソフトウェア関連(既存)
+  'software': [
+    { value: 'engineer', label: 'エンジニア' },
+    { value: 'pm', label: 'プロジェクトマネージャー' },
+    { value: 'sales', label: '営業' },
+    { value: 'consultant', label: 'コンサルタント' }
+  ],
+  'web_service': [
+    { value: 'web_engineer', label: 'Webエンジニア' },
+    { value: 'designer', label: 'デザイナー' },
+    { value: 'director', label: 'ディレクター' }
+  ],
+  'game': [
+    { value: 'game_developer', label: 'ゲーム開発' },
+    { value: 'game_planner', label: 'ゲームプランナー' },
+    { value: 'game_designer', label: 'ゲームデザイナー' }
+  ],
+  
+  // 電子機器の小分類
+  'electronics': [
+    { value: 'electronics_rd', label: '研究開発' },
+    { value: 'electronics_design', label: '設計・開発' },
+    { value: 'electronics_production', label: '生産技術' },
+    { value: 'electronics_quality', label: '品質管理' },
+    { value: 'electronics_sales', label: '営業・販売' },
+    { value: 'electronics_pm', label: 'プロジェクトマネージャー' }
+  ],
+  
+  // 半導体の小分類
+  'semiconductor': [
+    { value: 'semiconductor_design', label: '回路設計' },
+    { value: 'semiconductor_layout', label: 'レイアウト設計' },
+    { value: 'semiconductor_verification', label: '検証・評価' },
+    { value: 'semiconductor_process', label: 'プロセス開発' },
+    { value: 'semiconductor_equipment', label: '装置エンジニア' },
+    { value: 'semiconductor_sales', label: '営業・技術営業' }
+  ],
+  
+  // 精密機械の小分類
+  'precision_machinery': [
+    { value: 'precision_mechanical_design', label: '機械設計' },
+    { value: 'precision_electrical_design', label: '電気設計' },
+    { value: 'precision_control', label: '制御設計' },
+    { value: 'precision_production', label: '生産技術' },
+    { value: 'precision_maintenance', label: '保守・メンテナンス' },
+    { value: 'precision_sales', label: '営業・技術営業' }
+  ]
+}
+
+
 export const useOnboarding = () => {
   const steps: Step[] = [
     { id: 'profile', label: 'プロフィール' },
@@ -380,8 +561,8 @@ export const useOnboarding = () => {
   text: 'を教えてください',
   component: markRaw(SelectDropdown),
   dropdowns: [
-    { key: 'year', placeholder: '選択', label: '年', width: '90px', options: generateYearOptions() },
-    { key: 'month', placeholder: '選択', label: '月', width: '70px', options: generateMonthOptions() }
+    { key: 'year', placeholder: '選択', label: '年', width: '120px', options: generateYearOptions() },
+    { key: 'month', placeholder: '選択', label: '月', width: '100px', options: generateMonthOptions() }
   ],
   defaultValue: { year: '', month: '' }
 },
@@ -530,13 +711,35 @@ export const useOnboarding = () => {
   }
 },
     {
-      id: 'job_category',
+      id: 'job_industry_large',
       stepId: 'work-history',
-      highlight: '関わった主な仕事（職種）',
+      highlight: '関わった主な事業',
+      text: 'を1つ教えてください',
+      component: markRaw(IndustrySelect),
+      options: industryLargeOptions,
+      placeholder: '例：飲食、医療、人材、アパレル、配送など',
+      defaultValue: '',
+      selectedLabel: ''
+    },
+{
+  id: 'job_industry_medium',
+  stepId: 'work-history',
+  highlight: '関わった主な事業',
+  text: 'をさらに詳しく教えてください',
+  component: markRaw(IndustryMediumSelect),  // ← JobCategorySelect から変更
+  options: [], // 動的に設定
+  defaultValue: '',
+  selectedLabel: ''
+},
+    {
+      id: 'job_category_detail',
+      stepId: 'work-history',
+      highlight: '関わった主な職種',
       text: 'を教えてください',
-      component: markRaw(SelectCards),
-      options: jobCategoryOptions,
-      defaultValue: ''
+      component: markRaw(JobCategorySelect),
+      options: [], // 動的に設定
+      defaultValue: '',
+      selectedLabel: ''
     },
     {
       id: 'employee_size',
@@ -556,68 +759,110 @@ export const useOnboarding = () => {
       options: positionOptions,
       defaultValue: ''
     },
-    {
-      id: 'annual_income',
-      stepId: 'work-history',
-      highlight: '年収',
-      text: 'を教えてください',
-      component: markRaw(TextInput),
-      placeholder: '例: 450（万円）',
-      defaultValue: ''
-    },
-
-    // ===== 実務経験 =====
-    {
-      id: 'past_job_category',
+{
+  id: 'annual_income',
+  stepId: 'work-history',
+  highlight: '年収',
+  text: 'を教えてください',
+  component: markRaw(AnnualIncomeInput),
+  placeholder: '例: 450(万円)',
+  defaultValue: '300'  // ← ここを '' から '300' に変更
+},
+{
+  id: 'past_job_category',
+  stepId: 'experience',
+  highlight: '過去に経験した職種',
+  text: 'を教えてください(複数回答可)',
+  component: markRaw(PastJobCategorySelect),
+  categoryData: pastJobCategoryData,  // ← 追加
+  defaultValue: [],  // 配列に変更
+  isRequired: false  // 任意
+},
+{
+  id: 'job_experience_years_at_company',
+  stepId: 'experience',
+  highlight: '直近の企業での経験年数',
+  text: 'を教えてください',
+  component: markRaw(JobExperienceYearsInput),
+  defaultValue: {},
+  isRequired: false
+},
+{
+      id: 'management_years',
       stepId: 'experience',
-      highlight: '過去に経験した職種',
+      highlight: 'マネジメント経験年数',
       text: 'を教えてください',
       component: markRaw(SelectCards),
-      options: jobCategoryOptions,
+      options: [
+        { value: 'none', label: '経験なし' },
+        { value: 'less_than_1', label: '1年未満' },
+        { value: '1+', label: '1年以上' },
+        { value: '2+', label: '2年以上' },
+        { value: '3+', label: '3年以上' },
+        { value: '4+', label: '4年以上' },
+        { value: '5+', label: '5年以上' },
+        { value: '6+', label: '6年以上' },
+        { value: '7+', label: '7年以上' },
+        { value: '8+', label: '8年以上' },
+        { value: '9+', label: '9年以上' },
+        { value: '10+', label: '10年以上' }
+      ],
       defaultValue: ''
     },
     {
-      id: 'experience_years',
+      id: 'management_team_size',
       stepId: 'experience',
-      highlight: 'その職種の経験年数',
+      highlight: 'マネジメント経験人数',
       text: 'を教えてください',
-      component: markRaw(SelectDropdown),
-      dropdowns: [
-        { 
-          key: 'years', 
-          placeholder: '年', 
-          options: Array.from({ length: 31 }, (_, i) => ({
-            value: String(i),
-            label: `${i}`
-          }))
-        }
+      component: markRaw(SelectCards),
+      options: [
+        { value: '1-4', label: '1〜4人' },
+        { value: '5-9', label: '5〜9人' },
+        { value: '10-29', label: '10〜29人' },
+        { value: '30-99', label: '30〜99人' },
+        { value: '100+', label: '100人以上' }
       ],
-      defaultValue: { years: '' }
+      defaultValue: ''
     },
 
     // ===== 語学・資格 =====
-    {
+{
       id: 'language_skills',
       stepId: 'skills',
-      highlight: '語学スキル',
-      text: 'はありますか？',
+      highlight: '英語力',
+      text: 'について教えてください',
       component: markRaw(SelectCards),
       options: [
-        { value: 'yes', label: 'はい' },
-        { value: 'no', label: 'いいえ' }
+        { value: 'native', label: 'ネイティブレベル' },
+        { value: 'business', label: 'ビジネス会話レベル' },
+        { value: 'daily', label: '日常会話レベル' },
+        { value: 'none', label: '当てはまるものはない' }
       ],
+      defaultValue: ''
+    },
+{
+      id: 'drivers_license',
+      stepId: 'skills',
+      highlight: '普通自動車免許',
+      text: 'はお持ちですか?',
+      component: markRaw(SelectCards),
+      options: [
+        { value: 'at', label: '持っている(AT車限定)' },
+        { value: 'mt', label: '持っている(MT車)' },
+        { value: 'none', label: '免許を持っていない' }
+      ],
+      columns: 1,
       defaultValue: ''
     },
     {
       id: 'certifications',
       stepId: 'skills',
-      highlight: '保有資格',
-      text: 'を教えてください（任意）',
-      component: markRaw(TextInput),
-      placeholder: '例: TOEIC 800点、簿記2級',
-      defaultValue: '',
-  isRequired: false 
-    }
+      highlight: '保有している資格',
+      text: 'を教えてください(複数回答可)',
+      component: markRaw(CertificationInput),
+      defaultValue: [],
+      isRequired: false
+    },
   ]
 
   // ローカルストレージから復元
@@ -694,15 +939,27 @@ const loadIndex = (): number => {
 
   const currentQuestion = computed(() => questions[currentQuestionIndex.value])
   
-  const currentQuestionOptions = computed(() => {
+const currentQuestionOptions = computed(() => {
   const question = currentQuestion.value
   
-  // 都道府県の質問の場合、地域に応じた選択肢を返す
+  // 都道府県の質問の場合
   if (question.id === 'prefecture') {
     const selectedRegion = answers.value['region']
     if (selectedRegion && prefecturesByRegion[selectedRegion]) {
       return prefecturesByRegion[selectedRegion]
     }
+  }
+  
+  // 業種中分類の場合
+  if (question.id === 'job_industry_medium') {
+    const largeCat = answers.value['job_industry_large']
+    return industryMediumOptions[largeCat] || []
+  }
+  
+  // 職種詳細の場合
+  if (question.id === 'job_category_detail') {
+    const mediumCat = answers.value['job_industry_medium']
+    return jobDetailOptions[mediumCat] || []
   }
   
   return question.options || []
@@ -820,6 +1077,10 @@ const canProceed = computed(() => {
     return hasJoinDate && hasLeaveDate
   }
   
+  if (Array.isArray(answer)) {
+    return true // 配列は常にtrue(空配列でもOK)
+  }
+  
   if (typeof answer === 'object' && answer !== null) {
     return Object.values(answer).every(v => v !== '')
   }
@@ -881,6 +1142,16 @@ const handleNext = () => {
       nextIndex = currentQuestionIndex.value + 1
     }
   }
+    // マネジメント経験年数による分岐 ← ここに追加
+  else if (currentQuestion.value.id === 'management_years') {
+    const managementYears = currentAnswer.value
+    
+    if (managementYears === 'none') {
+      nextIndex = currentQuestionIndex.value + 2
+    } else {
+      nextIndex = currentQuestionIndex.value + 1
+    }
+  }
   
   if (nextIndex >= questions.length) {
     // 完了処理
@@ -921,6 +1192,81 @@ const handleReset = () => {
   }
 }
 
+// updateSelectedLabel 関数を先に定義
+const updateSelectedLabel = () => {
+  const question = questions[currentQuestionIndex.value]
+  const questionId = question.id
+  
+  // 中分類の場合: 大分類のラベルを表示
+  if (questionId === 'job_industry_medium') {
+    const largeCatValue = answers.value['job_industry_large']
+    const largeCat = industryLargeOptions.find(opt => opt.value === largeCatValue)
+    question.selectedLabel = largeCat?.label || ''
+  }
+  // 小分類の場合: 大分類 > 中分類 を表示
+  else if (questionId === 'job_category_detail') {
+    const largeCatValue = answers.value['job_industry_large']
+    const mediumCatValue = answers.value['job_industry_medium']
+    const largeCat = industryLargeOptions.find(opt => opt.value === largeCatValue)
+    const mediumOptions = industryMediumOptions[largeCatValue] || []
+    const mediumCat = mediumOptions.find(opt => opt.value === mediumCatValue)
+    
+    if (largeCat && mediumCat) {
+      question.selectedLabel = `${largeCat.label} > ${mediumCat.label}`
+    }
+  }
+  // それ以外はラベルをクリア
+  else {
+    question.selectedLabel = ''
+  }
+}
+
+// watchはupdateSelectedLabelの定義の後に配置
+watch(currentQuestionIndex, () => {
+  updateSelectedLabel()
+}, { immediate: true })
+
+// 動的にpropsと質問文を設定
+watch(currentQuestionIndex, () => {
+  const question = questions[currentQuestionIndex.value]
+  const questionId = question.id  // ← この行を追加
+  
+  // job_experience_years_at_company の場合
+  if (questionId === 'job_experience_years_at_company') {
+    question.selectedJobs = answers.value['past_job_category'] || []
+    const companyName = answers.value['current_company'] || '直近の企業'
+    question.companyName = companyName
+    question.employmentPeriod = answers.value['employment_period']
+    
+    // 質問文を動的に変更
+    question.highlight = `${companyName}で`
+    question.text = '以下の仕事をした年数を教えてください'
+  }
+  
+  // 中分類の場合: 大分類のラベルを表示
+  if (questionId === 'job_industry_medium') {
+    const largeCatValue = answers.value['job_industry_large']
+    const largeCat = industryLargeOptions.find(opt => opt.value === largeCatValue)
+    question.selectedLabel = largeCat?.label || ''
+  }
+  // 小分類の場合: 大分類 > 中分類 を表示
+  else if (questionId === 'job_category_detail') {
+    const largeCatValue = answers.value['job_industry_large']
+    const mediumCatValue = answers.value['job_industry_medium']
+    
+    const largeCat = industryLargeOptions.find(opt => opt.value === largeCatValue)
+    const mediumOptions = industryMediumOptions[largeCatValue] || []
+    const mediumCat = mediumOptions.find(opt => opt.value === mediumCatValue)
+    
+    if (largeCat && mediumCat) {
+      question.selectedLabel = `${largeCat.label} > ${mediumCat.label}`
+    }
+  }
+  // それ以外はラベルをクリア
+  else {
+    question.selectedLabel = ''
+  }
+}, { immediate: true })
 
 return {
   steps,
@@ -935,6 +1281,7 @@ return {
   handleNext,
   handleBack,
   handleReset,
+  updateSelectedLabel,
   answers,
   isHydrated,
   questionHistory,

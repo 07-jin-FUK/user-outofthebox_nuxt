@@ -6,7 +6,9 @@
       :placeholder="placeholder"
       class="text-input-with-notes__input"
       @input="handleInput"
-      @keydown.enter="handleSubmit"
+      @keydown.enter="handleKeydown"
+      @compositionstart="isComposing = true"
+      @compositionend="isComposing = false"
     />
     
     <div v-if="notes && notes.length > 0" class="text-input-with-notes__notes">
@@ -38,7 +40,9 @@ const handleInput = (event: Event) => {
   emit('update:modelValue', target.value)
 }
 
-const handleSubmit = () => {
+const handleKeydown = (event: KeyboardEvent) => {
+  // IME変換中はsubmitしない
+  if (isComposing.value) return
   emit('submit')
 }
 </script>
