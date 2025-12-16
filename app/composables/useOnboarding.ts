@@ -14,6 +14,15 @@ import JobCategorySelect from '~/components/onboarding/inputs/JobCategorySelect.
 import IndustryMediumSelect from '~/components/onboarding/inputs/IndustryMediumSelect.vue'
 import PastJobCategorySelect from '~/components/onboarding/inputs/PastJobCategorySelect.vue'
 import JobExperienceYearsInput from '~/components/onboarding/inputs/JobExperienceYearsInput.vue'
+import SmsCodeInput from '~/components/onboarding/inputs/SmsCodeInput.vue'
+import AccountInfoInput from '~/components/onboarding/inputs/AccountInfoInput.vue'
+import FullNameInput from '~/components/onboarding/inputs/FullNameInput.vue'
+import SalaryRangeInput from '~/components/onboarding/inputs/SalaryRangeInput.vue'
+import DesiredJobCategorySelect from '~/components/onboarding/inputs/DesiredJobCategorySelect.vue'
+import TextareaInput from '~/components/onboarding/inputs/TextareaInput.vue'
+
+
+
 
 const STORAGE_KEY = 'onboarding_answers'
 
@@ -531,6 +540,128 @@ const jobDetailOptions: Record<string, any[]> = {
   ]
 }
 
+const jobChangeTimingOptions = [
+  { value: 'immediately', label: 'すぐにでも' },
+  { value: '1-3months', label: '1〜3ヶ月以内' },
+  { value: '3-6months', label: '3〜6ヶ月以内' },
+  { value: '6months+', label: '6ヶ月以降' },
+  { value: 'undecided', label: 'まだ決めていない' }
+]
+
+// 転職希望職種のカテゴリ(2層構造)
+const desiredJobCategories = [
+  {
+    value: 'sales',
+    label: '営業',
+    children: [
+      { value: 'corporate_sales', label: '法人営業' },
+      { value: 'individual_sales', label: '個人営業' },
+      { value: 'inside_sales', label: 'インサイドセールス' },
+      { value: 'sales_support', label: '営業サポート' }
+    ]
+  },
+  {
+    value: 'it_engineer',
+    label: 'ITエンジニア',
+    children: [
+      { value: 'backend', label: 'バックエンドエンジニア' },
+      { value: 'frontend', label: 'フロントエンドエンジニア' },
+      { value: 'fullstack', label: 'フルスタックエンジニア' },
+      { value: 'infra', label: 'インフラエンジニア' }
+    ]
+  },
+  // 必要に応じて追加
+]
+
+// 希望勤務地用（新規追加）
+const desiredRegionOptions = [
+  { value: 'anywhere', label: 'どこでも可能' },  // ← これは希望勤務地のみ
+  { value: 'hokkaido', label: '北海道' },
+  { value: 'tohoku', label: '東北' },
+  { value: 'kanto', label: '関東' },
+  { value: 'chubu', label: '中部' },
+  { value: 'kinki', label: '近畿' },
+  { value: 'chugoku', label: '中国' },
+  { value: 'shikoku', label: '四国' },
+  { value: 'kyushu_okinawa', label: '九州・沖縄' }
+]
+
+const desiredPrefecturesByRegion: Record<string, any[]> = {
+  anywhere: [
+    { value: 'anywhere', label: 'どこでも可能' }
+  ],
+  hokkaido: [
+    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
+    { value: 'hokkaido', label: '北海道' }
+  ],
+  tohoku: [
+    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
+    { value: 'aomori', label: '青森県' },
+    { value: 'iwate', label: '岩手県' },
+    { value: 'miyagi', label: '宮城県' },
+    { value: 'akita', label: '秋田県' },
+    { value: 'yamagata', label: '山形県' },
+    { value: 'fukushima', label: '福島県' }
+  ],
+  kanto: [
+    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
+    { value: 'ibaraki', label: '茨城県' },
+    { value: 'tochigi', label: '栃木県' },
+    { value: 'gunma', label: '群馬県' },
+    { value: 'saitama', label: '埼玉県' },
+    { value: 'chiba', label: '千葉県' },
+    { value: 'tokyo', label: '東京都' },
+    { value: 'kanagawa', label: '神奈川県' }
+  ],
+  chubu: [
+    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
+    { value: 'niigata', label: '新潟県' },
+    { value: 'toyama', label: '富山県' },
+    { value: 'ishikawa', label: '石川県' },
+    { value: 'fukui', label: '福井県' },
+    { value: 'yamanashi', label: '山梨県' },
+    { value: 'nagano', label: '長野県' },
+    { value: 'gifu', label: '岐阜県' },
+    { value: 'shizuoka', label: '静岡県' },
+    { value: 'aichi', label: '愛知県' }
+  ],
+  kinki: [
+    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
+    { value: 'mie', label: '三重県' },
+    { value: 'shiga', label: '滋賀県' },
+    { value: 'kyoto', label: '京都府' },
+    { value: 'osaka', label: '大阪府' },
+    { value: 'hyogo', label: '兵庫県' },
+    { value: 'nara', label: '奈良県' },
+    { value: 'wakayama', label: '和歌山県' }
+  ],
+  chugoku: [
+    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
+    { value: 'tottori', label: '鳥取県' },
+    { value: 'shimane', label: '島根県' },
+    { value: 'okayama', label: '岡山県' },
+    { value: 'hiroshima', label: '広島県' },
+    { value: 'yamaguchi', label: '山口県' }
+  ],
+  shikoku: [
+    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
+    { value: 'tokushima', label: '徳島県' },
+    { value: 'kagawa', label: '香川県' },
+    { value: 'ehime', label: '愛媛県' },
+    { value: 'kochi', label: '高知県' }
+  ],
+  kyushu_okinawa: [
+    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
+    { value: 'fukuoka', label: '福岡県' },
+    { value: 'saga', label: '佐賀県' },
+    { value: 'nagasaki', label: '長崎県' },
+    { value: 'kumamoto', label: '熊本県' },
+    { value: 'oita', label: '大分県' },
+    { value: 'miyazaki', label: '宮崎県' },
+    { value: 'kagoshima', label: '鹿児島県' },
+    { value: 'okinawa', label: '沖縄県' }
+  ]
+}
 
 export const useOnboarding = () => {
   const steps: Step[] = [
@@ -863,6 +994,104 @@ export const useOnboarding = () => {
       defaultValue: [],
       isRequired: false
     },
+{
+  id: 'account_info',
+  stepId: 'skills',
+  highlight: 'アカウント情報',
+  text: 'を入力してください',
+  component: markRaw(AccountInfoInput),
+  defaultValue: {
+    email: '',
+    password: '',
+    phone: ''
+  }
+},
+{
+  id: 'sms_code',
+  stepId: 'skills',
+  highlight: 'SMS認証コード',
+  text: 'を入力してください',
+  component: markRaw(SmsCodeInput),
+  defaultValue: '',
+  isRequired: true
+},
+{
+  id: 'full_name',
+  stepId: 'final',
+  highlight: '本名',
+  text: 'を教えてください',
+  component: markRaw(FullNameInput),
+  defaultValue: {
+    lastName: '',
+    firstName: '',
+    lastNameKana: '',
+    firstNameKana: ''
+  }
+},
+{
+  id: 'desired_region',
+  stepId: 'final',
+  highlight: '希望勤務地の地域',
+  text: 'を教えてください',
+  component: markRaw(SelectCards),
+  options: desiredRegionOptions,
+  defaultValue: ''
+},
+{
+  id: 'desired_prefecture',
+  stepId: 'final',
+  highlight: '希望勤務地の都道府県',
+  text: 'を教えてください',
+  component: markRaw(SelectCards),
+  options: [],  // 動的に設定
+  defaultValue: ''
+},
+{
+  id: 'salary_range',
+  stepId: 'final',
+  highlight: '希望年収',
+  text: 'を教えてください',
+  component: markRaw(SalaryRangeInput),
+  defaultValue: {
+    min: '',
+    max: ''
+  }
+},
+{
+  id: 'desired_job_category',
+  stepId: 'final',
+  highlight: '転職したい職種',
+  text: 'を教えてください',
+  component: markRaw(DesiredJobCategorySelect),
+  categories: desiredJobCategories,
+  defaultValue: {
+    large: '',
+    small: ''
+  }
+},
+{
+  id: 'job_change_timing',
+  stepId: 'final',
+  highlight: '転職を考えている時期',
+  text: 'を教えてください',
+  component: markRaw(SelectCards),
+  options: jobChangeTimingOptions,
+  defaultValue: ''
+},
+{
+  id: 'self_pr',
+  stepId: 'final',
+  highlight: '自己PR',
+  text: 'を入力してください',
+  component: markRaw(TextareaInput),
+  placeholder: 'これまでの経験やスキル、強みなどを自由に記入してください',
+  notes: [
+    '具体的な実績や成果を含めると、より魅力的なPRになります',
+    '文字数に制限はありません'
+  ],
+  defaultValue: '',
+  isRequired: false
+}
   ]
 
   // ローカルストレージから復元
@@ -942,11 +1171,19 @@ const loadIndex = (): number => {
 const currentQuestionOptions = computed(() => {
   const question = currentQuestion.value
   
-  // 都道府県の質問の場合
+  // 都道府県の質問の場合（現住所）
   if (question.id === 'prefecture') {
     const selectedRegion = answers.value['region']
     if (selectedRegion && prefecturesByRegion[selectedRegion]) {
       return prefecturesByRegion[selectedRegion]
+    }
+  }
+  
+  // 希望勤務地の都道府県の場合 ← 追加
+  if (question.id === 'desired_prefecture') {
+    const selectedRegion = answers.value['desired_region']
+    if (selectedRegion && desiredPrefecturesByRegion[selectedRegion]) {
+      return desiredPrefecturesByRegion[selectedRegion]
     }
   }
   
@@ -1070,12 +1307,34 @@ const canProceed = computed(() => {
   
   const answer = currentAnswer.value
   
+  // full_nameの場合
+  if (currentQuestion.value.id === 'full_name') {
+    return answer.lastName && answer.firstName && answer.lastNameKana && answer.firstNameKana
+  }
+  
+  // salary_rangeの場合
+  if (currentQuestion.value.id === 'salary_range') {
+    return answer.min && answer.max && Number(answer.min) <= Number(answer.max)
+  }
+  
+  // desired_job_categoryの場合
+  if (currentQuestion.value.id === 'desired_job_category') {
+    return answer.large && answer.small
+  }
+  
+    // account_infoの場合
+  if (currentQuestion.value.id === 'account_info') {
+    return answer.email && answer.password && answer.phone
+  }
+
+  
   // employment_periodの場合
   if (currentQuestion.value.id === 'employment_period') {
     const hasJoinDate = answer.joinYear && answer.joinMonth
     const hasLeaveDate = answer.isCurrentJob ? (answer.leaveYear && answer.leaveMonth) : true
     return hasJoinDate && hasLeaveDate
   }
+
   
   if (Array.isArray(answer)) {
     return true // 配列は常にtrue(空配列でもOK)
@@ -1097,13 +1356,38 @@ const questionHistory = ref<number[]>([0])  // 最初の質問から開始
 const handleNext = () => {
   if (!canProceed.value) return
   
-  let nextIndex = currentQuestionIndex.value + 1
+  // account_info入力後にAPI送信してSMS送信
+  if (currentQuestion.value.id === 'account_info') {
+    // TODO: SMS送信API
+    console.log('Sending SMS to:', answers.value.account_info.phone)
+    // await sendSmsCode(answers.value.account_info)
+  }
   
-  // 地域選択で北海道を選んだ場合
+  // SMS認証完了後にAPI送信
+  if (currentQuestion.value.id === 'sms_code') {
+    // TODO: SMS認証API
+    console.log('Verifying SMS code:', answers.value.sms_code)
+    // await verifySmsCode(answers.value.sms_code)
+  }
+  
+  let nextIndex = currentQuestionIndex.value + 1
+  // 希望勤務地で「どこでも可能」または「北海道」を選んだ場合 ← 追加
+  if (currentQuestion.value.id === 'desired_region') {
+    if (currentAnswer.value === 'anywhere') {
+      answers.value['desired_prefecture'] = 'anywhere'
+      nextIndex = currentQuestionIndex.value + 2
+    } else if (currentAnswer.value === 'hokkaido') {
+      answers.value['desired_prefecture'] = 'hokkaido'
+      nextIndex = currentQuestionIndex.value + 2
+    }
+  }
+  
+  // 地域選択で北海道を選んだ場合（現住所）
   if (currentQuestion.value.id === 'region' && currentAnswer.value === 'hokkaido') {
     answers.value['prefecture'] = 'hokkaido'
     nextIndex = currentQuestionIndex.value + 2
   }
+  
   // 最終学歴による分岐
   else if (currentQuestion.value.id === 'education') {
     const education = currentAnswer.value
@@ -1136,7 +1420,7 @@ const handleNext = () => {
     
     if (count === '0') {
       // 0社の場合は職歴詳細をスキップ(+7)
-      nextIndex = currentQuestionIndex.value + 8
+      nextIndex = currentQuestionIndex.value + 14
     } else {
       // 1社以上の場合は次の質問へ
       nextIndex = currentQuestionIndex.value + 1
@@ -1289,6 +1573,7 @@ return {
   graduationSchoolName,
   graduationFacultyName,
   graduationBaseAge,
-  birthYear
+  birthYear,
+  answers
 }
 }

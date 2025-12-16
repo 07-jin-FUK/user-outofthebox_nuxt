@@ -45,28 +45,6 @@
   </div>
 </div>
 
-    <!-- 選択済みタグ表示 -->
-    <div v-if="selectedItems.length > 0" class="selected-tags">
-      <h3 class="selected-tags__title">追加している経験職種</h3>
-      <div class="selected-tags__list">
-        <div
-          v-for="(item, index) in selectedItems"
-          :key="index"
-          class="tag"
-        >
-          <span class="tag__text">{{ item.smallLabel }}</span>
-          <button
-            type="button"
-            class="tag__remove"
-            @click="removeTag(index)"
-            aria-label="削除"
-          >
-            ×
-          </button>
-        </div>
-      </div>
-    </div>
-
     <!-- カテゴリから探す -->
     <div class="category-section">
       <h3 class="category-section__title">カテゴリから探す</h3>
