@@ -53,6 +53,9 @@
         />
       </div>
     </div>
+       <p class="full-name-input__note">
+      本名は情報を開示する企業以外に知られることはございません。
+    </p>
   </div>
 </template>
 
@@ -103,6 +106,7 @@ const handleInput = (field: string, event: Event) => {
     font-size: $font-size-sm;
     font-weight: 600;
     color: $text-primary;
+    text-align: left;
   }
 
   &__input {
@@ -122,5 +126,18 @@ const handleInput = (field: string, event: Event) => {
       color: $text-muted;
     }
   }
+    &__note {
+    font-size: 12px;
+    color: $text-muted;
+    line-height: 1.6;
+    text-align: center;
+    margin-top: -$spacing-sm;  // 上のフィールドとの間隔を調整
+    
+    &::before {
+      content: '※ ';
+    }
+  }
 }
+
+
 </style>

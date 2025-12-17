@@ -18,6 +18,8 @@
             :is="currentQuestion.component"
             v-model="currentAnswer"
             :options="currentQuestionOptions"
+              :regions="currentQuestion.regions" 
+  :current-prefecture="answers['prefecture']" 
             :columns="currentQuestion.columns"
             :dropdowns="currentQuestion.dropdowns"
             :placeholder="currentQuestion.placeholder"
@@ -31,6 +33,7 @@
             :category-data="currentQuestion.categoryData"
             :selected-jobs="currentQuestion.selectedJobs"
             :company-name="currentQuestion.companyName"
+              :display-mode="currentQuestion.displayMode" 
             :employment-period="currentQuestion.employmentPeriod"
             :phone-number="answers['account_info']?.phone"
             @submit="handleNext"
@@ -57,6 +60,41 @@
         </div>
       </div>
     </div>
+    
+       <!-- ↓↓↓ ここに追加 ↓↓↓ -->
+    <!-- 新規追加: desired_job_category用 -->
+    <div v-if="currentQuestion?.id === 'desired_job_category' && currentAnswer.length > 0" 
+     class="onboarding__selected-preview">
+      <div class="selected-preview">
+        <h3 class="selected-preview__title">追加している転職希望職種</h3>
+        <div class="selected-preview__list">
+          <div v-for="(item, index) in currentAnswer" :key="index" class="preview-tag">
+            <span class="preview-tag__text">{{ item.smallLabel }}</span>
+            <button type="button" class="preview-tag__remove" @click="removeJobFromPreview(index)">
+              ×
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ↑↑↑ ここまで ↑↑↑ -->
+     
+    <!-- desired_location用 -->
+<div v-if="currentQuestion?.id === 'desired_location' && currentAnswer.length > 0" 
+ class="onboarding__selected-preview">
+  <div class="selected-preview">
+    <h3 class="selected-preview__title">選択中の希望勤務地</h3>
+    <div class="selected-preview__list">
+      <div v-for="(item, index) in currentAnswer" :key="index" class="preview-tag">
+        <span class="preview-tag__text">{{ item.label }}</span>
+        <button type="button" class="preview-tag__remove" @click="removeJobFromPreview(index)">
+          ×
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
     <div class="onboarding__nav">
       <!-- 中央: 戻る/次へボタン -->
@@ -115,7 +153,7 @@ const shouldShowStepIndicator = computed(() => {
   display: flex;
   flex-direction: column;
   padding-top: 60px; // ← インディケーターの高さ分の余白を追加
-  padding-bottom: 80px;
+  padding-bottom: 200px;
 
   &__content {
     flex: 1;
@@ -177,15 +215,15 @@ const shouldShowStepIndicator = computed(() => {
 
 .onboarding__selected-preview {
   position: fixed;
-  bottom: 80px; // ナビゲーションの高さ分上に配置
+  bottom: 90px; // ナビゲーションの高さ分上に配置
   left: 0;
   right: 0;
   background: $bg-primary;
   border-top: 1px solid $border-color;
   padding: $spacing-md $spacing-lg;
   z-index: 9;
-  max-height: 120px;
-  overflow-y: auto;
+  max-height: none;  // ← max-heightを削除
+  overflow-y: visible;  // ← スクロールを無効化
 }
 
 .selected-preview {

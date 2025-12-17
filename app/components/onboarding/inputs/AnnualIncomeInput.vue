@@ -1,16 +1,18 @@
 <template>
   <div class="annual-income-input">
-    <div class="annual-income-input__main">
-      <span class="annual-income-input__prefix">およそ</span>
-      <input
-        :value="modelValue"
-        type="number"
-        class="annual-income-input__field"
-        @input="handleInput"
-        @keydown.enter.prevent
-      />
-      <span class="annual-income-input__suffix">万円くらい</span>
-    </div>
+<div class="annual-income-input__main">
+  <span v-if="displayMode === 'approximate'" class="annual-income-input__prefix">およそ</span>
+  <input
+    :value="modelValue"
+    type="number"
+    class="annual-income-input__field"
+    @input="handleInput"
+    @keydown.enter.prevent
+  />
+  <span class="annual-income-input__suffix">
+    {{ displayMode === 'approximate' ? '万円くらい' : '万円以上' }}
+  </span>
+</div>
 
     <div class="annual-income-input__controls">
       <!-- 10万円単位 -->
@@ -103,10 +105,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   modelValue: string
   placeholder?: string
-}>()
+  displayMode?: 'approximate' | 'minimum'
+}>(), {
+  displayMode: 'approximate'
+})
 
 const emit = defineEmits<{
   'update:modelValue': [value: string]
@@ -117,6 +122,7 @@ const handleInput = (event: Event) => {
   const target = event.target as HTMLInputElement
   emit('update:modelValue', target.value)
 }
+
 
 const handleSubmit = () => {
   emit('submit')

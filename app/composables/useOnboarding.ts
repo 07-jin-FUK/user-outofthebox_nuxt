@@ -20,6 +20,7 @@ import FullNameInput from '~/components/onboarding/inputs/FullNameInput.vue'
 import SalaryRangeInput from '~/components/onboarding/inputs/SalaryRangeInput.vue'
 import DesiredJobCategorySelect from '~/components/onboarding/inputs/DesiredJobCategorySelect.vue'
 import TextareaInput from '~/components/onboarding/inputs/TextareaInput.vue'
+import DesiredLocationSelect from '~/components/onboarding/inputs/DesiredLocationSelect.vue'
 
 
 
@@ -61,7 +62,10 @@ interface Question {
   defaultValue: any
   isRequired?: boolean
   selectedLabel?: string
-  categoryData?: LargeCategory[]  // ← この行を追加
+  categoryData?: LargeCategory[]
+  regions?: any[] 
+    displayMode?: 'approximate' | 'minimum'  // ← 追加
+
 }
 
 // 年の選択肢を生成
@@ -545,6 +549,7 @@ const jobChangeTimingOptions = [
   { value: '1-3months', label: '1〜3ヶ月以内' },
   { value: '3-6months', label: '3〜6ヶ月以内' },
   { value: '6months+', label: '6ヶ月以降' },
+    { value: '1years', label: '1年以上先' },
   { value: 'undecided', label: 'まだ決めていない' }
 ]
 
@@ -573,95 +578,7 @@ const desiredJobCategories = [
   // 必要に応じて追加
 ]
 
-// 希望勤務地用（新規追加）
-const desiredRegionOptions = [
-  { value: 'anywhere', label: 'どこでも可能' },  // ← これは希望勤務地のみ
-  { value: 'hokkaido', label: '北海道' },
-  { value: 'tohoku', label: '東北' },
-  { value: 'kanto', label: '関東' },
-  { value: 'chubu', label: '中部' },
-  { value: 'kinki', label: '近畿' },
-  { value: 'chugoku', label: '中国' },
-  { value: 'shikoku', label: '四国' },
-  { value: 'kyushu_okinawa', label: '九州・沖縄' }
-]
 
-const desiredPrefecturesByRegion: Record<string, any[]> = {
-  anywhere: [
-    { value: 'anywhere', label: 'どこでも可能' }
-  ],
-  hokkaido: [
-    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
-    { value: 'hokkaido', label: '北海道' }
-  ],
-  tohoku: [
-    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
-    { value: 'aomori', label: '青森県' },
-    { value: 'iwate', label: '岩手県' },
-    { value: 'miyagi', label: '宮城県' },
-    { value: 'akita', label: '秋田県' },
-    { value: 'yamagata', label: '山形県' },
-    { value: 'fukushima', label: '福島県' }
-  ],
-  kanto: [
-    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
-    { value: 'ibaraki', label: '茨城県' },
-    { value: 'tochigi', label: '栃木県' },
-    { value: 'gunma', label: '群馬県' },
-    { value: 'saitama', label: '埼玉県' },
-    { value: 'chiba', label: '千葉県' },
-    { value: 'tokyo', label: '東京都' },
-    { value: 'kanagawa', label: '神奈川県' }
-  ],
-  chubu: [
-    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
-    { value: 'niigata', label: '新潟県' },
-    { value: 'toyama', label: '富山県' },
-    { value: 'ishikawa', label: '石川県' },
-    { value: 'fukui', label: '福井県' },
-    { value: 'yamanashi', label: '山梨県' },
-    { value: 'nagano', label: '長野県' },
-    { value: 'gifu', label: '岐阜県' },
-    { value: 'shizuoka', label: '静岡県' },
-    { value: 'aichi', label: '愛知県' }
-  ],
-  kinki: [
-    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
-    { value: 'mie', label: '三重県' },
-    { value: 'shiga', label: '滋賀県' },
-    { value: 'kyoto', label: '京都府' },
-    { value: 'osaka', label: '大阪府' },
-    { value: 'hyogo', label: '兵庫県' },
-    { value: 'nara', label: '奈良県' },
-    { value: 'wakayama', label: '和歌山県' }
-  ],
-  chugoku: [
-    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
-    { value: 'tottori', label: '鳥取県' },
-    { value: 'shimane', label: '島根県' },
-    { value: 'okayama', label: '岡山県' },
-    { value: 'hiroshima', label: '広島県' },
-    { value: 'yamaguchi', label: '山口県' }
-  ],
-  shikoku: [
-    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
-    { value: 'tokushima', label: '徳島県' },
-    { value: 'kagawa', label: '香川県' },
-    { value: 'ehime', label: '愛媛県' },
-    { value: 'kochi', label: '高知県' }
-  ],
-  kyushu_okinawa: [
-    { value: 'anywhere', label: 'どこでも可能' },  // ← 追加
-    { value: 'fukuoka', label: '福岡県' },
-    { value: 'saga', label: '佐賀県' },
-    { value: 'nagasaki', label: '長崎県' },
-    { value: 'kumamoto', label: '熊本県' },
-    { value: 'oita', label: '大分県' },
-    { value: 'miyazaki', label: '宮崎県' },
-    { value: 'kagoshima', label: '鹿児島県' },
-    { value: 'okinawa', label: '沖縄県' }
-  ]
-}
 
 export const useOnboarding = () => {
   const steps: Step[] = [
@@ -1018,7 +935,7 @@ export const useOnboarding = () => {
 {
   id: 'full_name',
   stepId: 'final',
-  highlight: '本名',
+  highlight: '氏名',
   text: 'を教えてください',
   component: markRaw(FullNameInput),
   defaultValue: {
@@ -1028,34 +945,125 @@ export const useOnboarding = () => {
     firstNameKana: ''
   }
 },
+// 既存のdesired_regionとdesired_prefectureを削除して、以下に置き換え
+
 {
-  id: 'desired_region',
+  id: 'desired_location',
   stepId: 'final',
-  highlight: '希望勤務地の地域',
-  text: 'を教えてください',
-  component: markRaw(SelectCards),
-  options: desiredRegionOptions,
-  defaultValue: ''
-},
-{
-  id: 'desired_prefecture',
-  stepId: 'final',
-  highlight: '希望勤務地の都道府県',
-  text: 'を教えてください',
-  component: markRaw(SelectCards),
-  options: [],  // 動的に設定
-  defaultValue: ''
+  highlight: '希望勤務地',
+  text: 'を教えてください（複数回答可）',
+  component: markRaw(DesiredLocationSelect),
+  regions: [
+    {
+      value: 'hokkaido',
+      label: '北海道',
+      prefectures: [{ value: 'hokkaido', label: '北海道' }]
+    },
+    {
+      value: 'tohoku',
+      label: '東北',
+      prefectures: [
+        { value: 'aomori', label: '青森県' },
+        { value: 'iwate', label: '岩手県' },
+        { value: 'miyagi', label: '宮城県' },
+        { value: 'akita', label: '秋田県' },
+        { value: 'yamagata', label: '山形県' },
+        { value: 'fukushima', label: '福島県' }
+      ]
+    },
+    {
+      value: 'kanto',
+      label: '関東',
+      prefectures: [
+        { value: 'ibaraki', label: '茨城県' },
+        { value: 'tochigi', label: '栃木県' },
+        { value: 'gunma', label: '群馬県' },
+        { value: 'saitama', label: '埼玉県' },
+        { value: 'chiba', label: '千葉県' },
+        { value: 'tokyo', label: '東京都' },
+        { value: 'kanagawa', label: '神奈川県' }
+      ]
+    },
+    {
+      value: 'chubu',
+      label: '中部',
+      prefectures: [
+        { value: 'niigata', label: '新潟県' },
+        { value: 'toyama', label: '富山県' },
+        { value: 'ishikawa', label: '石川県' },
+        { value: 'fukui', label: '福井県' },
+        { value: 'yamanashi', label: '山梨県' },
+        { value: 'nagano', label: '長野県' },
+        { value: 'gifu', label: '岐阜県' },
+        { value: 'shizuoka', label: '静岡県' },
+        { value: 'aichi', label: '愛知県' }
+      ]
+    },
+    {
+      value: 'kinki',
+      label: '近畿',
+      prefectures: [
+        { value: 'mie', label: '三重県' },
+        { value: 'shiga', label: '滋賀県' },
+        { value: 'kyoto', label: '京都府' },
+        { value: 'osaka', label: '大阪府' },
+        { value: 'hyogo', label: '兵庫県' },
+        { value: 'nara', label: '奈良県' },
+        { value: 'wakayama', label: '和歌山県' }
+      ]
+    },
+    {
+      value: 'chugoku',
+      label: '中国',
+      prefectures: [
+        { value: 'tottori', label: '鳥取県' },
+        { value: 'shimane', label: '島根県' },
+        { value: 'okayama', label: '岡山県' },
+        { value: 'hiroshima', label: '広島県' },
+        { value: 'yamaguchi', label: '山口県' }
+      ]
+    },
+    {
+      value: 'shikoku',
+      label: '四国',
+      prefectures: [
+        { value: 'tokushima', label: '徳島県' },
+        { value: 'kagawa', label: '香川県' },
+        { value: 'ehime', label: '愛媛県' },
+        { value: 'kochi', label: '高知県' }
+      ]
+    },
+    {
+      value: 'kyushu',
+      label: '九州・沖縄',
+      prefectures: [
+        { value: 'fukuoka', label: '福岡県' },
+        { value: 'saga', label: '佐賀県' },
+        { value: 'nagasaki', label: '長崎県' },
+        { value: 'kumamoto', label: '熊本県' },
+        { value: 'oita', label: '大分県' },
+        { value: 'miyazaki', label: '宮崎県' },
+        { value: 'kagoshima', label: '鹿児島県' },
+        { value: 'okinawa', label: '沖縄県' }
+      ]
+    }
+  ],
+  defaultValue: [],
+  isRequired: false
 },
 {
   id: 'salary_range',
   stepId: 'final',
   highlight: '希望年収',
   text: 'を教えてください',
-  component: markRaw(SalaryRangeInput),
-  defaultValue: {
-    min: '',
-    max: ''
-  }
+  component: markRaw(AnnualIncomeInput),
+  placeholder: '例: 450',
+  displayMode: 'minimum',  // ← 追加
+  notes: [
+    'これは希望する年収の下限値です',
+    '実際の年収は企業との面談で決定されます'
+  ],
+  defaultValue: '300'
 },
 {
   id: 'desired_job_category',
@@ -1063,7 +1071,7 @@ export const useOnboarding = () => {
   highlight: '転職したい職種',
   text: 'を教えてください',
   component: markRaw(DesiredJobCategorySelect),
-  categories: desiredJobCategories,
+  categoryData: desiredJobCategories,  // ← categoryDataに変更
   defaultValue: {
     large: '',
     small: ''
@@ -1077,20 +1085,6 @@ export const useOnboarding = () => {
   component: markRaw(SelectCards),
   options: jobChangeTimingOptions,
   defaultValue: ''
-},
-{
-  id: 'self_pr',
-  stepId: 'final',
-  highlight: '自己PR',
-  text: 'を入力してください',
-  component: markRaw(TextareaInput),
-  placeholder: 'これまでの経験やスキル、強みなどを自由に記入してください',
-  notes: [
-    '具体的な実績や成果を含めると、より魅力的なPRになります',
-    '文字数に制限はありません'
-  ],
-  defaultValue: '',
-  isRequired: false
 }
   ]
 
@@ -1110,6 +1104,7 @@ export const useOnboarding = () => {
   }
 
 const INDEX_STORAGE_KEY = 'onboarding_index'
+
 
 const loadIndex = (): number => {
   if (import.meta.client) {
@@ -1233,8 +1228,13 @@ const currentAnswer = computed({
 
     // 未初期化なら defaultValue を answers にセット（1回だけ）
     if (answers.value[id] === undefined) {
-      // オブジェクトの場合は deep copy
-      answers.value[id] = JSON.parse(JSON.stringify(currentQuestion.value.defaultValue))
+      // salary_rangeの場合は、annual_incomeの値を使う
+      if (id === 'salary_range' && answers.value['annual_income']) {
+        answers.value[id] = answers.value['annual_income']
+      } else {
+        // オブジェクトの場合は deep copy
+        answers.value[id] = JSON.parse(JSON.stringify(currentQuestion.value.defaultValue))
+      }
     }
 
     return answers.value[id]
@@ -1312,15 +1312,15 @@ const canProceed = computed(() => {
     return answer.lastName && answer.firstName && answer.lastNameKana && answer.firstNameKana
   }
   
-  // salary_rangeの場合
-  if (currentQuestion.value.id === 'salary_range') {
-    return answer.min && answer.max && Number(answer.min) <= Number(answer.max)
-  }
+// salary_rangeの場合（文字列型に変更）
+if (currentQuestion.value.id === 'salary_range') {
+  return answer !== '' && Number(answer) > 0
+}
   
-  // desired_job_categoryの場合
-  if (currentQuestion.value.id === 'desired_job_category') {
-    return answer.large && answer.small
-  }
+// desired_job_categoryの場合（配列形式に変更）
+if (currentQuestion.value.id === 'desired_job_category') {
+  return true  // 任意回答なので常にtrue（または answer.length > 0 で最低1つ必要にする）
+}
   
     // account_infoの場合
   if (currentQuestion.value.id === 'account_info') {
@@ -1573,7 +1573,6 @@ return {
   graduationSchoolName,
   graduationFacultyName,
   graduationBaseAge,
-  birthYear,
-  answers
+  birthYear
 }
 }
